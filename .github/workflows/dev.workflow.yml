@@ -1,0 +1,46 @@
+name: 🚀 Shoptet addon deploy workflow
+
+on:
+  workflow_call:
+    inputs:
+      host:
+        description: SFTP host
+        required: true
+        type: string
+      user:
+        description: SFTP username
+        required: true
+        type: string
+      remote-folder:
+        description: Remote folder
+        default: /
+        required: false
+        type: string
+    secrets: 
+      ftp_password:
+        required: true
+
+jobs:
+  web-deploy:
+    name: 🚀 Deploy Dev 🚀
+    runs-on: ubuntu-latest
+    steps:
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v2.3.2
+
+    - name: Auto Minify
+      uses: nizarmah/auto-minify@v2.1
+      with:
+        directory: src
+        output: dist
+
+    - name: 📂 Sync files
+      uses: milanmk/actions-file-deployer@master
+      with:
+        remote-protocol: sftp
+        remote-host: ${{ inputs.host }}
+        remote-user: ${{ inputs.user }}
+        remote-password: ${{ secrets.ftp_password }}
+        remote-path: ${{ inputs.remote-folder }}
+        local-path: dist
+        sync: full
